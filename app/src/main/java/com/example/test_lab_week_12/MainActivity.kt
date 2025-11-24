@@ -13,7 +13,6 @@ import com.example.test_lab_week_12.model.Movie
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.util.Calendar
-
 class MainActivity : AppCompatActivity() {
     private val movieAdapter by lazy {
         MovieAdapter(object : MovieAdapter.MovieClickListener {
@@ -48,10 +47,23 @@ class MainActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     // collect the list of movies from the StateFlow
-                    movieViewModel.popularMovies.collect {
-                        // add the list of movies to the adapter
-                            movies ->
-                        movieAdapter.addMovies(movies)
+                    movieViewModel.popularMovies.collect { movies ->
+                        // 1. Ambil tahun saat ini
+                        val currentYear = Calendar.getInstance().get(Calendar.YEAR).toString()
+
+                        // 2. Terapkan filter (Tahun) dan sorting (Popularitas)
+                        val filteredMovies = movies
+                            .filter { movie ->
+                                // Ambil film yang rilis tahun ini aja
+                                movie.releaseDate?.startsWith(currentYear) == true
+                            }
+                            .sortedByDescending { movie ->
+                                // Urutkan dari yang paling populer
+                                movie.popularity
+                            }
+
+                        // 3. Masukkan data yang sudah difilter ke adapter
+                        movieAdapter.addMovies(filteredMovies)
                     }
                 }
                 launch {
